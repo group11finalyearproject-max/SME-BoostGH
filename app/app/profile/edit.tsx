@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -40,6 +40,8 @@ export default function EditProfile() {
     const [fetching, setFetching] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [showValidation, setShowValidation] = useState(false);
+    const avatarUriRef = useRef<string | null>(null);
+    const savedAvatarUriRef = useRef<string | null>(null);
 
     const nameError =
         showValidation && !fullName.trim()
@@ -78,12 +80,20 @@ export default function EditProfile() {
     }, [user]);
 
     useEffect(() => {
+        avatarUriRef.current = avatarUri;
+        savedAvatarUriRef.current = savedAvatarUri;
+    }, [avatarUri, savedAvatarUri]);
+
+    useEffect(() => {
         return () => {
-            if (avatarUri && avatarUri !== savedAvatarUri) {
-                void deleteProfileImageFile(avatarUri);
+            const latestAvatarUri = avatarUriRef.current;
+            const latestSavedAvatarUri = savedAvatarUriRef.current;
+
+            if (latestAvatarUri && latestAvatarUri !== latestSavedAvatarUri) {
+                void deleteProfileImageFile(latestAvatarUri);
             }
         };
-    }, [avatarUri, savedAvatarUri]);
+    }, []);
 
     const handlePickImage = async () => {
         if (!user?.id) return;
