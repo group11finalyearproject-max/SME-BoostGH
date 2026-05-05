@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "SME Boost",
+    "slug": "smeboost",
+    "scheme": "smeboost",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/sme-boost-icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E8F4EC"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/sme-boost-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.group11project.smeboost"
+    },
+    "web": {
+      "favicon": "./assets/sme-boost-icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3ba11e3b-307d-45c8-ac41-b5961704b35e"
+      }
+    },
+    "owner": "group11project",
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
