@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getStoredProfile, saveProfileUpdates } from './profile';
 import { getCustomers, getInvoices } from './businessData';
+import { GpsLocation } from './location';
 
 export type OnboardingGoal =
     | 'get_paid_faster'
@@ -23,6 +24,10 @@ interface StoredOnboardingProfile {
     business_name?: string;
     industry?: string;
     full_name?: string;
+    business_location?: string;
+    gps_location?: GpsLocation | null;
+    business_registration_number?: string;
+    tin_number?: string;
     goals?: string[];
 }
 
@@ -40,6 +45,10 @@ export interface ProfileSetupInput {
     businessName: string;
     phone: string;
     industry: string;
+    businessLocation: string;
+    gpsLocation?: GpsLocation | null;
+    businessRegistrationNumber?: string;
+    tinNumber?: string;
     goals: OnboardingGoal[];
 }
 
@@ -144,6 +153,10 @@ export const saveOnboardingSetup = async (input: ProfileSetupInput) => {
         phone: input.phone,
         business_name: input.businessName,
         industry: input.industry,
+        business_location: input.businessLocation.trim(),
+        gps_location: input.gpsLocation ?? null,
+        business_registration_number: input.businessRegistrationNumber?.trim() || undefined,
+        tin_number: input.tinNumber?.trim() || undefined,
         goals: input.goals,
         onboarding_completed: true,
         onboarding_completed_at: new Date().toISOString(),

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
+import { GpsLocation } from './location';
 
 export interface StoredProfile {
     id: string;
@@ -9,6 +10,10 @@ export interface StoredProfile {
     industry?: string;
     goals?: string[];
     image_uri?: string;
+    business_location?: string;
+    gps_location?: GpsLocation | null;
+    business_registration_number?: string;
+    tin_number?: string;
     updated_at?: string;
     [key: string]: unknown;
 }

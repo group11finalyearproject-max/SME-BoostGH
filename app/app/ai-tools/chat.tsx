@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { ArrowLeft, ClipboardList, Send, Users, WalletCards, Zap } from 'lucide-react-native';
 import { useAuth } from '../../contexts/AuthContext';
@@ -63,11 +63,12 @@ const ADVISOR_TASKS = [
 
 export default function AIChat() {
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
             content:
-                'I am your SME Boost business advisor. Ask me about sales, customers, or your next best action and I will respond using the business context available in the app.',
+                'I am your SME Boost business advisor. Ask me general business questions or request advice based on the business context available in the app, and I will blend both when helpful.',
         },
     ]);
     const [input, setInput] = useState('');
@@ -134,18 +135,24 @@ export default function AIChat() {
                 </View>
             </View>
 
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={8}
+                className="flex-1"
+            >
                 <FlatList
                     data={messages}
                     keyExtractor={(_, index) => index.toString()}
                     contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                     ListHeaderComponent={
                         <View className="mb-6 gap-4">
                             <AIContextBanner metrics={metrics} />
 
                             <AISectionCard
                                 title="Ask for practical business help"
-                                description="Choose a common business task below or type your own question. The advisor will respond with clearer, action-focused guidance."
+                                description="Choose a common business task below or type your own question. The advisor can answer general business questions and also use your app context for more tailored guidance."
                             >
                                 <View className="gap-3">
                                     {ADVISOR_TASKS.map((task) => (
@@ -187,7 +194,7 @@ export default function AIChat() {
                             <View className="mt-2">
                                 <AIStateCard
                                     title="Advisor is preparing your answer"
-                                    description="SME Boost GH is reviewing your current business context and shaping a practical response."
+                                    description="SME Boost GH is combining your current business context with practical guidance to shape a useful response."
                                     tone="loading"
                                 />
                             </View>
@@ -195,11 +202,14 @@ export default function AIChat() {
                     }
                 />
 
-                <View className="border-t border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                <View
+                    className="border-t border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+                    style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+                >
                     <View className="flex-row items-end">
                         <TextInput
                             className="mr-3 min-h-[52px] flex-1 rounded-3xl bg-gray-100 px-4 py-3 text-sm text-gray-900 dark:bg-gray-700 dark:text-white"
-                            placeholder="Ask about sales, customers, or the next best action..."
+                            placeholder="Ask any business question or request guidance from your app data..."
                             placeholderTextColor="#9CA3AF"
                             value={input}
                             onChangeText={setInput}

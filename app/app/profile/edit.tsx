@@ -11,13 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Trash2 } from 'lucide-react-native';
+import { Camera, Crosshair, Trash2 } from 'lucide-react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileAvatar } from '../../components/profile/ProfileAvatar';
 import { AppFormField } from '../../components/ui/AppFormField';
 import { AppScreenHeader } from '../../components/ui/AppScreenHeader';
 import { AppStateCard } from '../../components/ui/AppStateCard';
 import { setFlashMessage } from '../../services/flashMessage';
+import { formatGpsLocation, GpsLocation, requestCurrentGpsLocation } from '../../services/location';
 import {
     deleteProfileImageFile,
     getStoredProfile,
@@ -33,12 +34,18 @@ export default function EditProfile() {
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
     const [businessName, setBusinessName] = useState('');
+    const [businessLocation, setBusinessLocation] = useState('');
+    const [businessRegistrationNumber, setBusinessRegistrationNumber] = useState('');
+    const [tinNumber, setTinNumber] = useState('');
+    const [gpsLocation, setGpsLocation] = useState<GpsLocation | null>(null);
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [savedAvatarUri, setSavedAvatarUri] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [imageLoading, setImageLoading] = useState(false);
+    const [locationLoading, setLocationLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [locationMessage, setLocationMessage] = useState('');
     const [showValidation, setShowValidation] = useState(false);
     const avatarUriRef = useRef<string | null>(null);
     const savedAvatarUriRef = useRef<string | null>(null);
@@ -61,6 +68,10 @@ export default function EditProfile() {
                     setFullName(data.full_name || '');
                     setPhone(data.phone || '');
                     setBusinessName(data.business_name || '');
+                    setBusinessLocation(data.business_location || '');
+                    setBusinessRegistrationNumber(data.business_registration_number || '');
+                    setTinNumber(data.tin_number || '');
+                    setGpsLocation(data.gps_location ?? null);
                     setAvatarUri(typeof data.image_uri === 'string' ? data.image_uri : null);
                     setSavedAvatarUri(typeof data.image_uri === 'string' ? data.image_uri : null);
                 } else {
@@ -157,6 +168,23 @@ export default function EditProfile() {
         );
     };
 
+    const handleUseCurrentLocation = async () => {
+        setLocationLoading(true);
+        setLocationMessage('');
+        setErrorMessage('');
+
+        const result = await requestCurrentGpsLocation();
+
+        if (result.gpsLocation) {
+            setGpsLocation(result.gpsLocation);
+            setLocationMessage('GPS location updated for this profile.');
+        } else if (result.errorMessage) {
+            setLocationMessage(result.errorMessage);
+        }
+
+        setLocationLoading(false);
+    };
+
     const handleSave = async () => {
         if (!user?.id) return;
 
@@ -174,6 +202,10 @@ export default function EditProfile() {
                 full_name: fullName.trim(),
                 phone: phone.trim(),
                 business_name: businessName.trim(),
+                business_location: businessLocation.trim(),
+                business_registration_number: businessRegistrationNumber.trim() || undefined,
+                tin_number: tinNumber.trim() || undefined,
+                gps_location: gpsLocation ?? null,
                 image_uri: avatarUri ?? undefined,
             };
 
@@ -334,6 +366,104 @@ export default function EditProfile() {
                                     className="rounded-2xl border border-gray-200 bg-gray-100 p-4 text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400"
                                     value={user?.email}
                                     editable={false}
+                                />
+                            </AppFormField>
+                        </View>
+
+                        <View className="mt-4">
+                            <AppFormField
+                                label="Business location"
+                                helper="Use the place customers know or where the business operates."
+                            >
+                                <TextInput
+                                    className={inputClassName}
+                                    value={businessLocation}
+                                    onChangeText={(text) => {
+                                        setBusinessLocation(text);
+                                        setErrorMessage('');
+                                    }}
+                                    placeholder="Business location"
+                                    placeholderTextColor="#9CA3AF"
+                                />
+                            </AppFormField>
+                        </View>
+
+                        <View className="mt-4 rounded-2xl border border-dashed border-primary-200 bg-primary-50/70 p-4 dark:border-primary-800 dark:bg-primary-900/10">
+                            <View className="flex-row items-start justify-between gap-3">
+                                <View className="flex-1">
+                                    <Text className="text-sm font-semibold text-primary-800 dark:text-primary-200">
+                                        GPS location
+                                    </Text>
+                                    <Text className="mt-2 text-sm leading-6 text-primary-700 dark:text-primary-300">
+                                        Optional. Refresh this from your device when you want the profile to keep your latest business coordinates.
+                                    </Text>
+                                    {gpsLocation ? (
+                                        <Text className="mt-3 text-xs font-semibold uppercase tracking-wide text-primary-800 dark:text-primary-200">
+                                            Saved: {formatGpsLocation(gpsLocation)}
+                                        </Text>
+                                    ) : null}
+                                    {locationMessage ? (
+                                        <Text className="mt-3 text-sm leading-5 text-primary-700 dark:text-primary-300">
+                                            {locationMessage}
+                                        </Text>
+                                    ) : null}
+                                </View>
+
+                                <TouchableOpacity
+                                    onPress={handleUseCurrentLocation}
+                                    disabled={locationLoading}
+                                    className={`min-h-[44px] min-w-[132px] flex-row items-center justify-center rounded-2xl bg-primary-600 px-4 py-3 ${
+                                        locationLoading ? 'opacity-70' : 'active:opacity-90'
+                                    }`}
+                                >
+                                    {locationLoading ? (
+                                        <ActivityIndicator size="small" color="#FFFFFF" />
+                                    ) : (
+                                        <>
+                                            <Crosshair size={16} color="#FFFFFF" />
+                                            <Text className="ml-2 text-sm font-semibold text-white">
+                                                {gpsLocation ? 'Refresh GPS' : 'Use Current'}
+                                            </Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <View className="mt-4">
+                            <AppFormField
+                                label="Business registration number"
+                                helper="Optional. Save the official registration number for your business records."
+                            >
+                                <TextInput
+                                    className={inputClassName}
+                                    value={businessRegistrationNumber}
+                                    onChangeText={(text) => {
+                                        setBusinessRegistrationNumber(text);
+                                        setErrorMessage('');
+                                    }}
+                                    placeholder="Registration number"
+                                    placeholderTextColor="#9CA3AF"
+                                    autoCapitalize="characters"
+                                />
+                            </AppFormField>
+                        </View>
+
+                        <View className="mt-4">
+                            <AppFormField
+                                label="TIN number"
+                                helper="Optional. Save the tax identification number for your business profile."
+                            >
+                                <TextInput
+                                    className={inputClassName}
+                                    value={tinNumber}
+                                    onChangeText={(text) => {
+                                        setTinNumber(text);
+                                        setErrorMessage('');
+                                    }}
+                                    placeholder="TIN number"
+                                    placeholderTextColor="#9CA3AF"
+                                    autoCapitalize="characters"
                                 />
                             </AppFormField>
                         </View>

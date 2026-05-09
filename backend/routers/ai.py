@@ -83,6 +83,8 @@ async def chat_with_ai(
         system_content = (
             "You are a highly capable AI Sales Assistant and business mentor for SME Boost Ghana. "
             "Provide professional, actionable, and concise advice tailored for small and medium enterprises. "
+            "You can answer both general business questions and questions grounded in the user's SME Boost app context. "
+            "When app business metrics are available, use them to personalize your advice where relevant. "
             "Do not hallucinate data."
         )
 
@@ -96,8 +98,9 @@ async def chat_with_ai(
                 f"\n- Overdue invoices: {m.get('overdue_invoices', 0)} "
                 f"totalling GH₵ {m.get('overdue_amount', 0):.2f}"
                 f"\n- Revenue from paid invoices: GH₵ {m.get('revenue', 0):.2f}"
-                f"\n\nBase all specific references on these statistics only. "
-                f"If asked for details outside this context, state that you only have aggregate summaries."
+                f"\n\nUse these statistics only for specific app-grounded references. "
+                f"For general questions, answer normally using broad business knowledge. "
+                f"When you mention app context, be explicit that you only have aggregate metrics and not detailed customer or invoice records."
             )
 
         messages = [{"role": "system", "content": system_content}]

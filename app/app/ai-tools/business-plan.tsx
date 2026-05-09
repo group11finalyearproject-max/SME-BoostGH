@@ -64,7 +64,9 @@ export default function BusinessPlanGenerator() {
     useFocusEffect(
         useCallback(() => {
             const loadResumeDraft = async () => {
-                const resume = await consumeWorkflowResume('business_plan');
+                if (!user?.id) return;
+
+                const resume = await consumeWorkflowResume(user.id, 'business_plan');
                 if (!resume) return;
 
                 setEditableResult(resume.content);
@@ -74,8 +76,8 @@ export default function BusinessPlanGenerator() {
                 setSuccessMessage('Saved business plan loaded. Continue editing and save again when ready.');
             };
 
-            loadResumeDraft();
-        }, [])
+            void loadResumeDraft();
+        }, [user?.id])
     );
 
     const resetFeedback = () => {
@@ -128,7 +130,11 @@ export default function BusinessPlanGenerator() {
         setErrorMessage('');
 
         try {
-            await saveDraft('business_plan', businessName || 'Business Plan', editableResult);
+            if (!user?.id) {
+                throw new Error('Sign in again before saving drafts.');
+            }
+
+            await saveDraft(user.id, 'business_plan', businessName || 'Business Plan', editableResult);
             setSaved(true);
             setSuccessMessage('Business plan saved. You can continue working on it later from Saved Drafts.');
             await Analytics.logEvent('ai_business_plan_saved');

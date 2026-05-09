@@ -35,7 +35,13 @@
     },
     "owner": "group11project",
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow SME Boost to use your location so your business profile can save your current GPS details."
+        }
+      ]
     ]
   }
 }

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DRAFTS_KEY = '@sme_boost_drafts';
+const draftsKey = (userId: string) => `@sme_boost_drafts_${userId}`;
 
 export type DraftType = 'business_plan' | 'marketing' | 'email';
 
@@ -29,8 +29,15 @@ export const getDraftTypeLabel = (type: DraftType): string => {
  * Loads all saved drafts, sorted newest first.
  */
 export const loadDrafts = async (): Promise<Draft[]> => {
+    return [];
+};
+
+/**
+ * Loads all saved drafts for a specific user, sorted newest first.
+ */
+export const loadDraftsForUser = async (userId: string): Promise<Draft[]> => {
     try {
-        const stored = await AsyncStorage.getItem(DRAFTS_KEY);
+        const stored = await AsyncStorage.getItem(draftsKey(userId));
         const drafts: Draft[] = stored ? JSON.parse(stored) : [];
         return drafts.sort((a, b) => b.createdAt - a.createdAt);
     } catch (error) {
@@ -43,12 +50,13 @@ export const loadDrafts = async (): Promise<Draft[]> => {
  * Saves a new draft to AsyncStorage.
  */
 export const saveDraft = async (
+    userId: string,
     type: DraftType,
     title: string,
     content: string
 ): Promise<void> => {
     try {
-        const existing = await loadDrafts();
+        const existing = await loadDraftsForUser(userId);
         const now = new Date();
         const newDraft: Draft = {
             id: `draft_${Date.now()}`,
@@ -63,7 +71,7 @@ export const saveDraft = async (
             }),
         };
         const updated = [newDraft, ...existing];
-        await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
+        await AsyncStorage.setItem(draftsKey(userId), JSON.stringify(updated));
     } catch (error) {
         console.error('Failed to save draft:', error);
         throw new Error('Could not save draft. Please try again.');
@@ -73,11 +81,11 @@ export const saveDraft = async (
 /**
  * Deletes a draft by ID.
  */
-export const deleteDraft = async (id: string): Promise<void> => {
+export const deleteDraft = async (userId: string, id: string): Promise<void> => {
     try {
-        const existing = await loadDrafts();
+        const existing = await loadDraftsForUser(userId);
         const updated = existing.filter((d) => d.id !== id);
-        await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
+        await AsyncStorage.setItem(draftsKey(userId), JSON.stringify(updated));
     } catch (error) {
         console.error('Failed to delete draft:', error);
         throw new Error('Could not delete draft. Please try again.');

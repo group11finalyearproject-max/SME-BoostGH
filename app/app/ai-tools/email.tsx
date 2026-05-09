@@ -66,7 +66,9 @@ export default function EmailGenerator() {
     useFocusEffect(
         useCallback(() => {
             const loadResumeDraft = async () => {
-                const resume = await consumeWorkflowResume('email');
+                if (!user?.id) return;
+
+                const resume = await consumeWorkflowResume(user.id, 'email');
                 if (!resume) return;
 
                 setEditableResult(resume.content);
@@ -75,8 +77,8 @@ export default function EmailGenerator() {
                 setSuccessMessage('Saved email draft loaded. Continue editing and save again when ready.');
             };
 
-            loadResumeDraft();
-        }, [])
+            void loadResumeDraft();
+        }, [user?.id])
     );
 
     const resetFeedback = () => {
@@ -135,7 +137,11 @@ export default function EmailGenerator() {
         setErrorMessage('');
 
         try {
-            await saveDraft('email', `${emailType} to ${recipient}`, editableResult);
+            if (!user?.id) {
+                throw new Error('Sign in again before saving drafts.');
+            }
+
+            await saveDraft(user.id, 'email', `${emailType} to ${recipient}`, editableResult);
             setSaved(true);
             setSuccessMessage('Email draft saved. You can return to it later from Saved Drafts.');
             await Analytics.logEvent('ai_email_saved');

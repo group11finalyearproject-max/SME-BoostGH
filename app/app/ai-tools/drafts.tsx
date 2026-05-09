@@ -3,11 +3,12 @@ import { Clipboard, ScrollView, Share, Text, TouchableOpacity, View } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { ArrowLeft, BookOpen } from 'lucide-react-native';
+import { useAuth } from '../../contexts/AuthContext';
 import { AIStateCard } from '../../components/ai/AIStateCard';
 import { AIWorkflowHero } from '../../components/ai/AIWorkflowHero';
 import { AIDraftGroupSection } from '../../components/ai/AIDraftGroupSection';
 import { AIDraftMemoryCard } from '../../components/ai/AIDraftMemoryCard';
-import { deleteDraft, Draft, getDraftTypeLabel, loadDrafts } from '../../services/drafts';
+import { deleteDraft, Draft, getDraftTypeLabel, loadDraftsForUser } from '../../services/drafts';
 import { getDraftContinueLabel, getDraftPreview, getDraftRoute, groupDraftsByType } from '../../lib/aiDrafts';
 import { saveWorkflowResume } from '../../services/aiWorkflowResume';
 import { confirmDestructiveAction } from '../../services/confirm';
@@ -37,6 +38,7 @@ const SHARE_PREFIX = {
 } as const;
 
 export default function Drafts() {
+    const { user } = useAuth();
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
@@ -48,7 +50,12 @@ export default function Drafts() {
                 setLoading(true);
                 setErrorMessage('');
                 try {
-                    const data = await loadDrafts();
+                    if (!user?.id) {
+                        setDrafts([]);
+                        return;
+                    }
+
+                    const data = await loadDraftsForUser(user.id);
                     setDrafts(data);
                 } catch (error: any) {
                     setErrorMessage(error?.message ?? 'Failed to load drafts.');
@@ -57,8 +64,8 @@ export default function Drafts() {
                 }
             };
 
-            fetchDrafts();
-        }, [])
+            void fetchDrafts();
+        }, [user?.id])
     );
 
     const handleDelete = (draft: Draft) => {
@@ -68,7 +75,8 @@ export default function Drafts() {
             confirmLabel: 'Delete',
             onConfirm: async () => {
                 try {
-                    await deleteDraft(draft.id);
+                    if (!user?.id) return;
+                    await deleteDraft(user.id, draft.id);
                     setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
                     setSuccessMessage('Draft deleted.');
                     setErrorMessage('');
@@ -99,7 +107,9 @@ export default function Drafts() {
     };
 
     const handleContinue = async (draft: Draft) => {
-        await saveWorkflowResume(draft.type, {
+        if (!user?.id) return;
+
+        await saveWorkflowResume(user.id, draft.type, {
             title: draft.title,
             content: draft.content,
         });

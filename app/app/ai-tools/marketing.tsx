@@ -57,7 +57,9 @@ export default function MarketingGenerator() {
     useFocusEffect(
         useCallback(() => {
             const loadResumeDraft = async () => {
-                const resume = await consumeWorkflowResume('marketing');
+                if (!user?.id) return;
+
+                const resume = await consumeWorkflowResume(user.id, 'marketing');
                 if (!resume) return;
 
                 setEditableResult(resume.content);
@@ -68,8 +70,8 @@ export default function MarketingGenerator() {
                 setSuccessMessage('Saved marketing draft loaded. Continue editing and save again when ready.');
             };
 
-            loadResumeDraft();
-        }, [])
+            void loadResumeDraft();
+        }, [user?.id])
     );
 
     const resetFeedback = () => {
@@ -140,7 +142,11 @@ export default function MarketingGenerator() {
         setErrorMessage('');
 
         try {
-            await saveDraft('marketing', `${channel} - ${offerName}`, editableResult);
+            if (!user?.id) {
+                throw new Error('Sign in again before saving drafts.');
+            }
+
+            await saveDraft(user.id, 'marketing', `${channel} - ${offerName}`, editableResult);
             setSaved(true);
             setSuccessMessage('Marketing draft saved. You can continue working on it later from Saved Drafts.');
             await Analytics.logEvent('ai_marketing_saved');

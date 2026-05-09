@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
     ScrollView,
     Text,
     TextInput,
@@ -10,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
-import { Briefcase, FileText, Mail, Megaphone, Users } from 'lucide-react-native';
+import { Briefcase, Crosshair, FileText, Mail, MapPin, Megaphone, Users } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { AIWorkflowHero } from '../components/ai/AIWorkflowHero';
 import { AISectionCard } from '../components/ai/AISectionCard';
@@ -25,6 +27,7 @@ import {
     OnboardingGoal,
     saveOnboardingSetup,
 } from '../services/onboarding';
+import { formatGpsLocation, GpsLocation, requestCurrentGpsLocation } from '../services/location';
 
 const inputClassName =
     'rounded-2xl border border-gray-200 bg-gray-50 p-4 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
@@ -91,13 +94,20 @@ export default function OnboardingScreen() {
     const [businessName, setBusinessName] = useState('');
     const [phone, setPhone] = useState('');
     const [industry, setIndustry] = useState('');
+    const [businessLocation, setBusinessLocation] = useState('');
+    const [businessRegistrationNumber, setBusinessRegistrationNumber] = useState('');
+    const [tinNumber, setTinNumber] = useState('');
+    const [gpsLocation, setGpsLocation] = useState<GpsLocation | null>(null);
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationMessage, setLocationMessage] = useState('');
     const [selectedGoals, setSelectedGoals] = useState<OnboardingGoal[]>([]);
     const [recommendedAction, setRecommendedAction] = useState('/(dashboard)');
 
     const canContinueSetup =
         fullName.trim().length > 0 &&
         businessName.trim().length > 0 &&
-        industry.trim().length > 0;
+        industry.trim().length > 0 &&
+        businessLocation.trim().length > 0;
 
     const fullNameError =
         showValidation && !fullName.trim()
@@ -110,6 +120,10 @@ export default function OnboardingScreen() {
     const industryError =
         showValidation && !industry.trim()
             ? 'Add your industry so SME Boost GH can tailor guidance more accurately.'
+            : '';
+    const businessLocationError =
+        showValidation && !businessLocation.trim()
+            ? 'Add your business location so your profile reflects where the business operates.'
             : '';
 
     const stepTitle = useMemo(() => {
@@ -173,6 +187,10 @@ export default function OnboardingScreen() {
                 businessName,
                 phone,
                 industry,
+                businessLocation,
+                gpsLocation,
+                businessRegistrationNumber,
+                tinNumber,
                 goals: selectedGoals,
             });
 
@@ -192,7 +210,7 @@ export default function OnboardingScreen() {
     const handleNext = () => {
         if (step === 1 && !canContinueSetup) {
             setShowValidation(true);
-            setErrorMessage('Add your name, business name, and industry so SME Boost GH can personalize your setup.');
+            setErrorMessage('Add your name, business name, business location, and industry so SME Boost GH can personalize your setup.');
             return;
         }
 
@@ -216,6 +234,23 @@ export default function OnboardingScreen() {
         }
 
         setStep((prev) => Math.min(prev + 1, 3));
+    };
+
+    const handleUseCurrentLocation = async () => {
+        setLocationLoading(true);
+        setLocationMessage('');
+        setErrorMessage('');
+
+        const result = await requestCurrentGpsLocation();
+
+        if (result.gpsLocation) {
+            setGpsLocation(result.gpsLocation);
+            setLocationMessage('Current GPS location added. You can still type the business location in words below.');
+        } else if (result.errorMessage) {
+            setLocationMessage(result.errorMessage);
+        }
+
+        setLocationLoading(false);
     };
 
     if (authLoading) {
@@ -250,7 +285,18 @@ export default function OnboardingScreen() {
                 onBack={step > 0 ? () => setStep((prev) => Math.max(prev - 1, 0)) : undefined}
             />
 
-            <ScrollView className="flex-1">
+            <KeyboardAvoidingView
+                className="flex-1"
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={8}
+            >
+            <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ paddingBottom: 32 }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                showsVerticalScrollIndicator={false}
+            >
                 <View className="px-5 pb-12 pt-6">
                     {feedbackMessage ? (
                         <View className="mb-4">
@@ -359,6 +405,104 @@ export default function OnboardingScreen() {
                                         placeholder="Enter phone number"
                                         placeholderTextColor="#9CA3AF"
                                         keyboardType="phone-pad"
+                                    />
+                                </AppFormField>
+
+                                <AppFormField
+                                    label="Business location"
+                                    helper="Enter the place customers know or where the business operates."
+                                    example="Accra Central, Kumasi, Takoradi Market Circle"
+                                    error={businessLocationError}
+                                    required
+                                >
+                                    <TextInput
+                                        className={inputClassName}
+                                        value={businessLocation}
+                                        onChangeText={(text) => {
+                                            setBusinessLocation(text);
+                                            setErrorMessage('');
+                                        }}
+                                        placeholder="Enter your business location"
+                                        placeholderTextColor="#9CA3AF"
+                                    />
+                                </AppFormField>
+
+                                <View className="rounded-2xl border border-dashed border-primary-200 bg-primary-50/70 p-4 dark:border-primary-800 dark:bg-primary-900/10">
+                                    <View className="flex-row items-start justify-between gap-3">
+                                        <View className="flex-1">
+                                            <View className="flex-row items-center">
+                                                <MapPin size={16} color="#2E7D32" />
+                                                <Text className="ml-2 text-sm font-semibold text-primary-800 dark:text-primary-200">
+                                                    GPS location
+                                                </Text>
+                                            </View>
+                                            <Text className="mt-2 text-sm leading-6 text-primary-700 dark:text-primary-300">
+                                                Optional. Add your device location to improve business context while keeping the written business location as the main visible address.
+                                            </Text>
+                                            {gpsLocation ? (
+                                                <Text className="mt-3 text-xs font-semibold uppercase tracking-wide text-primary-800 dark:text-primary-200">
+                                                    Saved: {formatGpsLocation(gpsLocation)}
+                                                </Text>
+                                            ) : null}
+                                            {locationMessage ? (
+                                                <Text className="mt-3 text-sm leading-5 text-primary-700 dark:text-primary-300">
+                                                    {locationMessage}
+                                                </Text>
+                                            ) : null}
+                                        </View>
+
+                                        <TouchableOpacity
+                                            onPress={handleUseCurrentLocation}
+                                            disabled={locationLoading}
+                                            className={`min-h-[44px] min-w-[132px] flex-row items-center justify-center rounded-2xl bg-primary-600 px-4 py-3 ${
+                                                locationLoading ? 'opacity-70' : 'active:opacity-90'
+                                            }`}
+                                        >
+                                            {locationLoading ? (
+                                                <ActivityIndicator size="small" color="#FFFFFF" />
+                                            ) : (
+                                                <>
+                                                    <Crosshair size={16} color="#FFFFFF" />
+                                                    <Text className="ml-2 text-sm font-semibold text-white">
+                                                        {gpsLocation ? 'Refresh GPS' : 'Use Current'}
+                                                    </Text>
+                                                </>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                <AppFormField
+                                    label="Business registration number"
+                                    helper="Optional. Add the official registration number if your business has one."
+                                >
+                                    <TextInput
+                                        className={inputClassName}
+                                        value={businessRegistrationNumber}
+                                        onChangeText={(text) => {
+                                            setBusinessRegistrationNumber(text);
+                                            setErrorMessage('');
+                                        }}
+                                        placeholder="Enter registration number"
+                                        placeholderTextColor="#9CA3AF"
+                                        autoCapitalize="characters"
+                                    />
+                                </AppFormField>
+
+                                <AppFormField
+                                    label="TIN number"
+                                    helper="Optional. Add your tax identification number for future business records."
+                                >
+                                    <TextInput
+                                        className={inputClassName}
+                                        value={tinNumber}
+                                        onChangeText={(text) => {
+                                            setTinNumber(text);
+                                            setErrorMessage('');
+                                        }}
+                                        placeholder="Enter TIN number"
+                                        placeholderTextColor="#9CA3AF"
+                                        autoCapitalize="characters"
                                     />
                                 </AppFormField>
 
@@ -522,6 +666,7 @@ export default function OnboardingScreen() {
                     </View>
                 </View>
             </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }

@@ -2,24 +2,31 @@ import { ScrollView, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Briefcase, Mail, Megaphone, MessageSquare, Save } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { AIWorkflowHero } from '../../components/ai/AIWorkflowHero';
 import { AIWorkflowLauncherCard } from '../../components/ai/AIWorkflowLauncherCard';
 import { AISectionCard } from '../../components/ai/AISectionCard';
 import { AIStateCard } from '../../components/ai/AIStateCard';
-import { loadDrafts } from '../../services/drafts';
+import { loadDraftsForUser } from '../../services/drafts';
 
 export default function AITools() {
+    const { user } = useAuth();
     const [draftCount, setDraftCount] = useState(0);
 
     useFocusEffect(
         useCallback(() => {
             const fetchDrafts = async () => {
-                const drafts = await loadDrafts();
+                if (!user?.id) {
+                    setDraftCount(0);
+                    return;
+                }
+
+                const drafts = await loadDraftsForUser(user.id);
                 setDraftCount(drafts.length);
             };
 
-            fetchDrafts();
-        }, [])
+            void fetchDrafts();
+        }, [user?.id])
     );
 
     return (

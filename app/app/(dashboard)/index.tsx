@@ -22,7 +22,7 @@ import { PrimaryActionCard } from '../../components/dashboard/PrimaryActionCard'
 import { RecentActivityCard } from '../../components/dashboard/RecentActivityCard';
 import { SectionHeader } from '../../components/dashboard/SectionHeader';
 import { AppStateCard } from '../../components/ui/AppStateCard';
-import { loadDrafts } from '../../services/drafts';
+import { loadDraftsForUser } from '../../services/drafts';
 import { consumeFlashMessage, FlashMessage } from '../../services/flashMessage';
 import { getOnboardingState } from '../../services/onboarding';
 import { getStoredProfile, StoredProfile } from '../../services/profile';
@@ -86,7 +86,7 @@ export default function Dashboard() {
             const invoices: Invoice[] = invStored ? JSON.parse(invStored) : [];
             setInvoiceCount(invoices.length);
 
-            const drafts = await loadDrafts();
+            const drafts = await loadDraftsForUser(user.id);
             setDraftCount(drafts.length);
 
             const onboarding = await getOnboardingState(user.id);
