@@ -26,6 +26,9 @@ function AppShell() {
                 <Stack.Screen name="auth" options={{ headerShown: false }} />
                 <Stack.Screen name="onboarding" options={{ headerShown: false }} />
                 <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
+                <Stack.Screen name="backup-sync" options={{ headerShown: false }} />
+                <Stack.Screen name="notifications" options={{ headerShown: false }} />
+                <Stack.Screen name="help" options={{ headerShown: false }} />
                 <Stack.Screen name="ai-tools" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>
             <AIFloatingButton />

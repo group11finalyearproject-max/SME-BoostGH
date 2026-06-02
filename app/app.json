@@ -41,7 +41,8 @@
         {
           "locationWhenInUsePermission": "Allow SME Boost to use your location so your business profile can save your current GPS details."
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }
