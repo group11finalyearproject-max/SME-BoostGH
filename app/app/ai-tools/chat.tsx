@@ -136,14 +136,18 @@ export default function AIChat() {
             </View>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={8}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
                 className="flex-1"
             >
                 <FlatList
                     data={messages}
                     keyExtractor={(_, index) => index.toString()}
-                    contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
+                    contentContainerStyle={{
+                        flexGrow: 1,
+                        padding: 20,
+                        paddingBottom: Math.max(insets.bottom + 96, 120),
+                    }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                     ListHeaderComponent={

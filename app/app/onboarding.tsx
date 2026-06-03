@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Briefcase, Crosshair, FileText, Mail, MapPin, Megaphone, Users } from 'lucide-react-native';
@@ -84,6 +84,7 @@ const goals: Array<{
 
 export default function OnboardingScreen() {
     const { user, loading: authLoading } = useAuth();
+    const insets = useSafeAreaInsets();
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -287,12 +288,15 @@ export default function OnboardingScreen() {
 
             <KeyboardAvoidingView
                 className="flex-1"
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={8}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
             >
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ paddingBottom: 32 }}
+                contentContainerStyle={{
+                    flexGrow: 1,
+                    paddingBottom: Math.max(insets.bottom + 120, 140),
+                }}
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                 showsVerticalScrollIndicator={false}

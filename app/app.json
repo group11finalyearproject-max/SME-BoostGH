@@ -21,6 +21,7 @@
         "foregroundImage": "./assets/sme-boost-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "softwareKeyboardLayoutMode": "resize",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.group11project.smeboost"
