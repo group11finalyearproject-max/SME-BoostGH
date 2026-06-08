@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, router } from 'expo-router';
 import { getPostAuthRoute } from '../../services/onboarding';
-import { GoogleAuthButton } from '../../components/auth/GoogleAuthButton';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -27,11 +26,6 @@ export default function Login() {
             const route = await getPostAuthRoute(userId);
             router.replace(route as never);
         }
-    };
-
-    const handleGoogleAuthenticated = async (userId?: string) => {
-        const route = await getPostAuthRoute(userId);
-        router.replace(route as never);
     };
 
     return (
@@ -77,17 +71,6 @@ export default function Login() {
                             <Text className="text-white font-bold text-lg">Sign In</Text>
                         )}
                     </TouchableOpacity>
-
-                    <View className="mt-5 flex-row items-center">
-                        <View className="h-px flex-1 bg-emerald-100 dark:bg-emerald-900" />
-                        <Text className="mx-3 text-sm font-medium text-gray-400 dark:text-gray-500">or continue with</Text>
-                        <View className="h-px flex-1 bg-emerald-100 dark:bg-emerald-900" />
-                    </View>
-
-                    <GoogleAuthButton
-                        label="Continue with Google"
-                        onAuthenticated={handleGoogleAuthenticated}
-                    />
                 </View>
 
                 <View className="flex-row justify-center mt-6">

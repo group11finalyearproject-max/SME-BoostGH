@@ -6,8 +6,6 @@ import {
     sendPasswordResetEmail,
     onAuthStateChanged,
     updateProfile,
-    signInWithCredential,
-    GoogleAuthProvider,
     User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -32,7 +30,6 @@ interface AuthContextType {
     loading: boolean;
     signIn: (email: string, password: string) => Promise<{ error: any; userId?: string }>;
     signUp: (email: string, password: string, fullName: string) => Promise<{ error: any; userId?: string }>;
-    signInWithGoogle: (idToken: string, accessToken?: string) => Promise<{ error: any; userId?: string }>;
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ error: any }>;
 }
@@ -100,20 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const signInWithGoogle = async (idToken: string, accessToken?: string) => {
-        try {
-            const credential = GoogleAuthProvider.credential(idToken, accessToken);
-            const userCredential = await signInWithCredential(auth, credential);
-            const mappedSession = await mapFirebaseUser(userCredential.user);
-            setSession(mappedSession);
-            setUser(mappedSession.user);
-            return { error: null, userId: userCredential.user.uid };
-        } catch (error: any) {
-            console.error('Firebase Google sign in error:', error);
-            return { error: error.message, userId: undefined };
-        }
-    };
-
     const signOut = async () => {
         await firebaseSignOut(auth);
     };
@@ -128,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, resetPassword }}>
+        <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resetPassword }}>
             {children}
         </AuthContext.Provider>
     );
