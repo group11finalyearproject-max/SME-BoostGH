@@ -1,7 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import {
     Clipboard,
-    ScrollView,
     Share,
     Text,
     TextInput,
@@ -25,6 +24,7 @@ import { getMarketingVariants } from '../../lib/aiMarketing';
 import { consumeWorkflowResume } from '../../services/aiWorkflowResume';
 import { getAIContext } from '../../services/aiContext';
 import { Analytics } from '../../services/analytics';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 
 const inputClassName =
     'rounded-2xl border border-gray-200 bg-gray-50 p-4 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
@@ -217,7 +217,7 @@ export default function MarketingGenerator() {
                 </View>
             </View>
 
-            <ScrollView className="flex-1">
+            <KeyboardAwareScrollView className="flex-1">
                 <View className="px-5 pb-12 pt-6">
                     <AIWorkflowHero
                         eyebrow="Guided Workflow"
@@ -470,7 +470,7 @@ export default function MarketingGenerator() {
                         ) : null}
                     </View>
                 </View>
-            </ScrollView>
+            </KeyboardAwareScrollView>
         </SafeAreaView>
     );
 }

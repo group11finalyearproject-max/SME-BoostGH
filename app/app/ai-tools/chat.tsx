@@ -136,7 +136,7 @@ export default function AIChat() {
             </View>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
                 className="flex-1"
             >
@@ -146,7 +146,7 @@ export default function AIChat() {
                     contentContainerStyle={{
                         flexGrow: 1,
                         padding: 20,
-                        paddingBottom: Math.max(insets.bottom + 96, 120),
+                        paddingBottom: Math.max(insets.bottom + 132, 156),
                     }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}

@@ -337,6 +337,10 @@ export default function Dashboard() {
                     summary={dashboardSummary}
                     customerCount={customerCount}
                     invoiceCount={invoiceCount}
+                    imageUri={typeof profile?.image_uri === 'string' ? profile.image_uri : null}
+                    fullName={profile?.full_name || user?.user_metadata?.full_name}
+                    businessName={profile?.business_name as string | undefined}
+                    email={user?.email}
                     primaryActionLabel={heroPrimaryAction.label}
                     primaryActionHref={heroPrimaryAction.href}
                     secondaryActionLabel={heroSecondaryAction.label}

@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
+import { ProfileAvatar } from '../profile/ProfileAvatar';
 
 interface DashboardHeroProps {
     firstName: string;
     summary: string;
     customerCount: number;
     invoiceCount: number;
+    imageUri?: string | null;
+    fullName?: string | null;
+    businessName?: string | null;
+    email?: string | null;
     primaryActionLabel: string;
     primaryActionHref: string;
     secondaryActionLabel: string;
@@ -24,13 +29,15 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
     summary,
     customerCount,
     invoiceCount,
+    imageUri,
+    fullName,
+    businessName,
+    email,
     primaryActionLabel,
     primaryActionHref,
     secondaryActionLabel,
     secondaryActionHref,
 }) => {
-    const initial = firstName.charAt(0).toUpperCase() || 'U';
-
     return (
         <View className="rounded-3xl bg-primary-600 px-5 py-6 shadow-md dark:bg-primary-700">
             <View className="flex-row items-start justify-between">
@@ -46,8 +53,14 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     </Text>
                 </View>
 
-                <View className="h-14 w-14 items-center justify-center rounded-full bg-white/15">
-                    <Text className="text-xl font-bold text-white">{initial}</Text>
+                <View className="rounded-full bg-white/15 p-1">
+                    <ProfileAvatar
+                        imageUri={imageUri}
+                        fullName={fullName}
+                        businessName={businessName}
+                        email={email}
+                        size={56}
+                    />
                 </View>
             </View>
 
