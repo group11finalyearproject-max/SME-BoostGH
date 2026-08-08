@@ -1,0 +1,693 @@
+You are ChatGPT 5.6 acting as a senior full-stack mobile engineer and product designer. Build the complete SME Boost GH project as an Expo React Native mobile app with a small FastAPI backend. The app is for Ghanaian entrepreneurs and small business owners with low to medium technical knowledge. The experience must feel clean, modern, smooth, trustworthy, mobile-first, and guided.
+
+Important: Do not build a generic prototype. Recreate the full product described below with all screens, workflows, services, storage keys, data models, AI behavior, and backend API contracts.
+
+PROJECT IDENTITY
+
+App name: SME Boost / SME Boost GH
+Audience: Ghanaian SMEs, entrepreneurs, small business owners.
+Core promise: business tools and AI guidance for Ghanaian SMEs.
+Primary jobs:
+1. Manage customers.
+2. Create invoices.
+3. Track invoice statuses, due dates, revenue, tax, reminders, and reports.
+4. Generate business plans, marketing content, professional emails, and advisor chat replies with AI.
+5. Save, copy, share, and resume AI drafts.
+6. Maintain business profile, onboarding setup, local backup/sync snapshots, notifications, and dark mode.
+
+TECH STACK
+
+Mobile:
+- React Native with Expo.
+- Expo Router for file-based routing.
+- TypeScript with strict mode.
+- NativeWind/Tailwind for styling.
+- Firebase client SDK for email/password authentication.
+- Firebase Auth ID tokens sent to backend as Bearer tokens.
+- AsyncStorage for offline-first local data.
+- lucide-react-native for icons.
+- react-native-safe-area-context.
+- expo-image-picker for profile images.
+- expo-file-system for profile image storage and backup file creation.
+- expo-location for optional GPS capture.
+- react-native-qrcode-svg for invoice QR payment demo.
+
+Backend:
+- FastAPI.
+- Pydantic.
+- Firebase Admin SDK for bearer token verification.
+- OpenAI Async client for AI generation and advisor chat.
+- CORS enabled for development.
+- Uvicorn startup.
+
+ENVIRONMENT VARIABLES
+
+Do not hardcode secrets. Use these variables:
+
+Mobile public env:
+- EXPO_PUBLIC_FIREBASE_API_KEY
+- EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
+- EXPO_PUBLIC_FIREBASE_PROJECT_ID
+- EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET
+- EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+- EXPO_PUBLIC_FIREBASE_APP_ID
+- EXPO_PUBLIC_API_URL
+- EXPO_PUBLIC_PAYSTACK_KEY, optional future payment key
+- EXPO_PUBLIC_ANALYTICS_ID, optional future analytics ID
+
+Backend env:
+- OPENAI_API_KEY
+- PORT, default 8000
+- FIREBASE_SERVICE_ACCOUNT_JSON, preferred for hosted deployment
+- FIREBASE_SERVICE_ACCOUNT_JSON_BASE64, alternative hosted deployment format
+- FIREBASE_SERVICE_ACCOUNT_KEY, local file path alternative
+
+APP CONFIG
+
+Expo app config:
+- name: SME Boost
+- slug: smeboost
+- scheme: smeboost
+- orientation: portrait
+- userInterfaceStyle: light, but implement app-level dark mode with NativeWind class strategy.
+- Android package: com.group11project.smeboost
+- Android edgeToEdgeEnabled true.
+- Android softwareKeyboardLayoutMode resize.
+- iOS supports tablet.
+- Include app icons/splash assets.
+- Configure expo-location permission text: allow SME Boost to use location so the business profile can save current GPS details.
+
+DESIGN SYSTEM AND UX REQUIREMENTS
+
+Use a flat, clean, professional mobile UI. Preserve the existing green SME Boost identity:
+- Primary: #2E7D32 family, with 50 #E8F4EC through 900 #0B2110.
+- Secondary: #4BB37E family, with 50 #F2F9F6 through 900 #0F2419.
+- Success #22C55E, warning #FACC15, danger #EF4444, info #3B82F6.
+- Use white/gray surfaces in light mode and gray-800/gray-900 surfaces in dark mode.
+- Use semantic state colors for paid, pending, overdue, error, success, warning, loading, empty.
+- Use lucide icons, not emojis.
+- Keep touch targets at least 44pt.
+- Provide clear pressed states, loading states, empty states, error recovery text, and success feedback.
+- Use clear labels and helper text for forms. Do not rely on placeholders only.
+- Keep forms simple and guided with section cards.
+- Bottom tabs must be predictable and limited to five: Dashboard, Invoices, Customers, Reports, Profile.
+- Use safe-area padding and keyboard-aware scrolling for long forms and AI workflows.
+- Preserve readable line heights and avoid cramped layouts.
+- Use cards for repeated items and framed tools, not decorative nesting.
+- Support dark mode consistently.
+
+ROUTING MAP
+
+Root:
+- app/_layout.tsx: Wrap app in AuthProvider and ThemeProvider. Render Stack routes. Show AIFloatingButton only on primary dashboard-like paths.
+- app/index.tsx: Landing screen. If user is signed in, route to dashboard or onboarding based on onboarding state. If signed out, show SME Boost GH intro and Get Started link to login.
+
+Auth:
+- /auth/login: email/password login, validation, loading, Firebase sign-in, post-auth routing.
+- /auth/signup: full name/email/password signup, Firebase profile displayName update, success flash, route to onboarding.
+- /auth/reset-password: email input, Firebase password reset, alerts.
+
+Onboarding:
+- /onboarding: four-step guided setup:
+  1. Welcome explaining customers, invoices, AI tools, and first small win.
+  2. Business basics: full name, business name, phone, business location, optional GPS location, business registration number, TIN number, industry.
+  3. Goals: choose up to two from get_paid_faster, manage_customers, write_business_plan, create_marketing, draft_email.
+  4. Recommendation: show best first action and finish setup.
+- Save onboarding and profile data locally.
+- Recommended first action priority: manage_customers -> /crm/new, get_paid_faster -> /invoices/new, write_business_plan -> /ai-tools/business-plan, create_marketing -> /ai-tools/marketing, draft_email -> /ai-tools/email, fallback dashboard.
+
+Dashboard tabs:
+- /(dashboard)/_layout: bottom tabs with icons.
+- /(dashboard)/index: dashboard command center.
+- /(dashboard)/invoices: invoice list.
+- /(dashboard)/crm: customer list.
+- /(dashboard)/reports: business report dashboard.
+- /(dashboard)/profile: profile/settings screen.
+
+Other routes:
+- /crm redirects to /(dashboard)/crm.
+- /crm/new creates a customer.
+- /crm/[id] edits/deletes a customer.
+- /invoices redirects to /(dashboard)/invoices.
+- /invoices/new creates invoice.
+- /invoices/[id] invoice detail, status, sharing, QR payment demo.
+- /tax-report tax compliance report.
+- /profile/edit profile editor.
+- /notifications in-app invoice reminder center.
+- /help help/support guidance.
+- /backup-sync local backup and sync snapshot screen.
+- /ai-tools modal stack.
+- /ai-tools/index AI workflow launcher.
+- /ai-tools/business-plan.
+- /ai-tools/marketing.
+- /ai-tools/email.
+- /ai-tools/chat.
+- /ai-tools/drafts.
+
+DATA MODELS
+
+Customer:
+- id: string
+- user_id?: string
+- name: string
+- phone?: string
+- email?: string
+- created_at: ISO string
+- updated_at?: ISO string
+
+InvoiceStatus: paid | pending | overdue
+
+TaxBreakdown:
+- nhil: number
+- getfund: number
+- covid: number
+- vat: number
+- totalTax: number
+
+InvoiceItem:
+- id
+- description
+- quantity
+- unit_price
+
+Invoice:
+- id
+- user_id?
+- customer_id?
+- customer_name
+- subtotal?
+- taxBreakdown?
+- amount
+- description?
+- items?
+- status
+- due_date?
+- created_at
+- updated_at?
+- share_count?
+- last_shared_at?
+- last_shared_channel?
+- reminder_count?
+- last_reminder_at?
+- reminder_dismissed_at?
+- payment_reference?
+- sync_status?: local | pending_sync | synced
+- last_synced_at?
+
+AppNotificationType:
+- invoice_due_soon
+- invoice_overdue
+- backup_ready
+- sync_completed
+- help_tip
+
+AppNotification:
+- id
+- userId
+- type
+- title
+- description
+- createdAt
+- readAt?
+- dismissedAt?
+- actionHref?
+- invoiceId?
+- metadata?
+
+StoredProfile:
+- id
+- full_name?
+- phone?
+- business_name?
+- industry?
+- goals?
+- image_uri?
+- business_location?
+- gps_location?: { latitude, longitude } | null
+- business_registration_number?
+- tin_number?
+- onboarding_completed?
+- onboarding_completed_at?
+- recommended_action?
+- updated_at?
+
+AI:
+- AIToolType: email | business_plan | marketing | financial_summary | chat.
+- DraftType: business_plan | marketing | email.
+- Draft: id, title, type, content, createdAt timestamp, date display string.
+- AIChatMessage roles: user | assistant | system.
+
+LOCAL STORAGE KEYS
+
+Use AsyncStorage keys exactly:
+- @theme_preference
+- @customers_${userId}
+- @invoices_${userId}
+- @profile_${userId}
+- @onboarding_${userId}
+- @notifications_${userId}
+- @sme_boost_drafts_${userId}
+- @ai_resume_${userId}_${draftType}
+- @backup_meta_${userId}
+- @sync_meta_${userId}
+- @analytics_events
+- @analytics_profile
+
+CORE SERVICES
+
+Authentication:
+- AuthProvider watches Firebase auth state.
+- Map Firebase user to local user shape: id, email, user_metadata.full_name.
+- Store session with Firebase ID token.
+- Provide signIn, signUp, signOut, resetPassword.
+- signUp updates Firebase displayName and refreshes token.
+
+Theme:
+- ThemeProvider restores @theme_preference.
+- Defaults to light.
+- Supports toggleTheme and setTheme using NativeWind setColorScheme.
+
+Business data:
+- getCustomers/saveCustomers sorted newest first.
+- getInvoices/saveInvoices sorted newest first.
+- updateCustomer and updateInvoice update updated_at; invoice updates mark sync_status pending_sync.
+- getBusinessSnapshot returns customers and invoices.
+
+Tax:
+- Ghana taxes:
+  - NHIL 2.5%
+  - GETFund 2.5%
+  - COVID-19 Health Recovery Levy 1%
+  - VAT 15%
+- Calculate NHIL, GETFund, COVID flat on subtotal.
+- VAT is calculated sequentially on subtotal + levies.
+- totalTax is sum.
+- Round values to two decimals.
+
+Reports:
+- Range: 30d, 90d, all.
+- Build BusinessReport with invoiceCount, customerCount, paidRevenue, pendingAmount, overdueAmount, paidCount, overdueCount, averageInvoiceValue, recentCustomerCount, collectionRate, statusBreakdown, monthlyRevenue for last four calendar months.
+
+Notifications:
+- Generate invoice_due_soon if unpaid invoice due within 3 days.
+- Generate invoice_overdue if status overdue or due date has passed.
+- Preserve read/dismissed state across regeneration.
+- Update invoice reminder_count and last_reminder_at when generated.
+- Expose loadNotifications, syncInvoiceNotifications, markNotificationRead, markAllNotificationsRead, dismissNotification, getUnreadNotificationCount.
+
+Invoice sharing:
+- formatInvoiceShareMessage includes invoice id, customer, amount due, status, due date, optional description, optional total tax, and thank-you line.
+- shareInvoice supports general, email, whatsapp message styles through React Native Share.
+- After share, update share_count, last_shared_at, last_shared_channel.
+
+Backup:
+- buildBackupPayload includes exportedAt, userId, profile, customers, invoices, drafts.
+- createBackupFile writes JSON to cache directory and updates backup meta.
+- shareBackupFile shares backup file.
+- shareBackupSummary shares plain business summary counts.
+
+Sync:
+- triggerManualSync marks invoices synced, sets last_synced_at, builds backup payload, stores sync meta.
+- getSyncMeta reads meta.
+- scheduleBackgroundSync can remain a stub with console message for offline-first build.
+
+Analytics:
+- Store recent analytics events locally, max 40.
+- logEvent stores name, timestamp, optional params and logs in dev.
+- setUserProperties and getRecentEvents.
+
+Location:
+- requestCurrentGpsLocation dynamically loads expo-location.
+- Request foreground permission.
+- Return gpsLocation or a helpful non-technical error.
+- formatGpsLocation returns latitude and longitude to six decimals.
+
+Profile:
+- getStoredProfile/saveProfileUpdates.
+- Store profile images under FileSystem.documentDirectory/profile-images/.
+- prepareProfileImageForSave copies selected image, deletes previous temporary managed image.
+- deleteProfileImageFile deletes only managed images.
+- getAvatarInitials uses full name, business name, email, fallback U.
+
+Flash messages:
+- setFlashMessage and consumeFlashMessage as simple in-memory pending message between routes.
+
+Confirm:
+- confirmDestructiveAction wraps React Native Alert with cancel and destructive confirmation.
+
+AI SERVICES AND BACKEND CONTRACT
+
+Mobile AI base URL:
+- process.env.EXPO_PUBLIC_API_URL, fallback local URL.
+- Fetch fresh Firebase ID token with getAuth().currentUser?.getIdToken().
+- Send Authorization: Bearer token when available.
+
+Backend:
+- FastAPI app title SME Boost Ghana API.
+- GET / returns welcome message.
+- GET /health returns { status: "ok" }.
+- POST /ai/generate:
+  - Protected by Firebase bearer token.
+  - Request: { type: string, context: object }.
+  - For type business_plan: generate concise business plan draft.
+  - For type marketing: generate marketing content.
+  - For type email: draft professional email.
+  - Return { content: string }.
+- POST /ai/chat:
+  - Protected by Firebase bearer token.
+  - Request: { messages: array, business_metrics?: object }.
+  - System prompt: AI Sales Assistant/business mentor for SME Boost Ghana. Provide professional, actionable, concise advice for SMEs. Use business metrics only when available and do not hallucinate data.
+  - If metrics are provided, include total_customers, total_invoices, overdue_invoices, overdue_amount, revenue.
+  - Return { content: string, metrics_used: business_metrics }.
+- Use a singleton AsyncOpenAI client.
+- Current model can be gpt-3.5-turbo or updated safely, but keep behavior compatible.
+
+AI BUSINESS METRICS
+
+getBusinessMetrics reads local AsyncStorage only and sends aggregate metrics, not names/PII:
+- total_customers
+- total_invoices
+- overdue_invoices
+- overdue_amount
+- revenue from paid invoices
+
+AI context for guided workflows:
+- getAIContext combines stored profile and business metrics:
+  - businessName
+  - industry
+  - goals
+  - metrics
+
+AI OUTPUT STRUCTURING
+
+Business plan parser:
+- BusinessPlanSectionKey: businessSummary, targetMarket, revenueModel, operations, nextActions.
+- Required sections:
+  - Business Summary
+  - Target Market
+  - Revenue Model
+  - Operations
+  - Next 3 Actions
+- Split AI output by likely headings and map headings with patterns.
+- If insufficient structure, fallback into the five sections using paragraphs/default guidance.
+
+Marketing parser:
+- Parse up to three variants by headings like Variant, Version, or numbered headings.
+- Fallback titles:
+  - Primary Version
+  - Short Version
+  - Promotional Version
+- Fallback descriptions:
+  - balanced ready-to-use version
+  - shorter quick version
+  - stronger sales-focused variation
+
+Email parser:
+- Parse Subject line, Email body, Suggested CTA.
+- Fallback subject: "{emailType} for {recipient}".
+- Fallback CTA: desiredOutcome or "Invite the recipient to reply or confirm the next step."
+- Editable format:
+  Subject line:
+  ...
+
+  Email body:
+  ...
+
+  Suggested CTA:
+  ...
+
+Advisor parser:
+- Structure raw reply into summary, actionItems, supportPoints.
+- Detect bullet/numbered lines.
+- Action items should prioritize lines with next/action/recommend/should/start/focus/follow up/review/improve/send.
+
+SCREEN REQUIREMENTS
+
+Dashboard:
+- Pull customer count, invoice count, paid revenue, pending invoices, draft count, recent invoices, onboarding recommended action, stored profile, and notifications sync.
+- Dashboard hero greets first name and shows customer/invoice chips.
+- Dynamic user stages:
+  - no_customers: focus Add First Customer.
+  - no_invoices: focus Create First Invoice.
+  - no_ai: focus AI tools.
+  - active: focus pending invoice follow-up or create next invoice.
+- Show Business Snapshot with revenue collected, pending invoice count, customer count.
+- Show latest invoice activity or getting started card.
+- Show AssistantSupportCard with AI quick tasks.
+- Link profile/settings card.
+- Pull-to-refresh.
+
+Customer list:
+- Search by name or email.
+- Empty state with Add first customer.
+- Cards show initial, name, optional email/phone.
+- Route to detail on tap.
+
+Add/Edit customer:
+- Required name.
+- Optional phone and email.
+- Save to @customers_${userId}.
+- Add route supports returnTo query for invoice flow.
+- Edit supports update and destructive delete confirmation.
+- Flash messages after actions.
+
+Invoice list:
+- List invoices newest first.
+- Pull-to-refresh.
+- Cards show id, customer, created date, due date, amount, status badge.
+- Empty state links to create first invoice.
+
+Create invoice:
+- Load customers.
+- If no customers, show warning with action to /crm/new?returnTo=%2Finvoices%2Fnew.
+- Select customer through modal.
+- Fields: customer, description, subtotal amount, due date preset.
+- Due options: Today, 7 Days, 14 Days, 30 Days.
+- Tax switch applies Ghana tax breakdown.
+- Show grand total card.
+- Save invoice with generated id INV-XXXXXXXX, status pending, due_date, created_at, sync_status pending_sync.
+- Sync invoice notifications and log analytics.
+
+Invoice detail:
+- Load invoice by id.
+- If not found, show empty state.
+- Header with delete button.
+- Status segmented controls: paid, pending, overdue.
+- Updating status updates local invoice, syncs notifications, logs analytics.
+- Show subtotal and GRA tax breakdown when tax exists.
+- Show total amount, invoice id, customer, created date, due date, share activity, description.
+- Share section: general summary, email style, WhatsApp style.
+- Bottom actions: Show QR, Resend Email.
+- QRPaymentModal shows QR payload with id, amount, customer, reference, share QR, and Test Pay that marks invoice paid.
+
+Reports:
+- Range controls: 30 Days, 90 Days, All Time.
+- Show revenue collected, customers, invoice collection health breakdown, monthly revenue trend bar chart for last four months, quick interpretation, collection rate, average invoice value.
+- Built entirely from local customers/invoices.
+
+Tax report:
+- Based only on paid invoices.
+- Show total collected GRA taxes, taxable sales, VAT, NHIL, GETFund, COVID-19.
+- Include disclaimer: business support tool, not definitive legal/GRA advice.
+
+Profile:
+- Show avatar, full name, email, business name.
+- Show business details if present: business location, GPS coordinates, registration number, TIN.
+- Menu: Edit Profile, Dark Mode switch, Notifications with unread count, Help & Support, Backup & Sync.
+- Sign out requires destructive confirmation.
+
+Edit profile:
+- Load existing profile.
+- Avatar/image picker with media library permission, crop square, quality 0.7.
+- Remove image confirmation.
+- Required full name.
+- Fields: full name, business name, read-only email, business location, optional GPS location, business registration number, TIN number, phone.
+- Save profile locally and delete replaced managed image.
+
+Notifications:
+- Sync invoice notifications on focus.
+- Header action Mark all read.
+- Summary unread count.
+- Loading, empty, and list states.
+- Notification card with title, description, createdAt, dismiss X.
+- Open invoice marks read and routes actionHref.
+- Individual mark-read button.
+
+Help:
+- Simple non-technical support sections:
+  - How should I start?
+  - When should I use the AI tools?
+  - Why add customers first?
+  - How do invoice reminders work?
+- Recommended workflow:
+  1. Add a customer.
+  2. Create an invoice with a due date.
+  3. Track reminders in Notifications.
+  4. Use AI tools.
+- Button to open AI tools.
+
+Backup & Sync:
+- Show last backup export and last local sync snapshot.
+- Prepare Local Sync Snapshot.
+- Create Backup File.
+- Share Backup.
+- Share Summary.
+- Explain current behavior: local sync snapshots and exportable backup files, no real cloud DB/payments yet.
+
+AI tools index:
+- Launcher cards:
+  - Build a business plan.
+  - Write marketing content.
+  - Draft a professional email.
+  - Ask the business assistant.
+- Continue saved work section, showing saved draft count or empty state.
+
+Business plan AI workflow:
+- Guided sections:
+  1. Business basics: business name, industry.
+  2. Customer and market: target customer.
+  3. Offer and income: what do you sell, how do you make money.
+  4. Operations and current goal: operations, current challenge/growth goal.
+- Required before generation: business name, industry, offer, businessGoal.
+- Generate with type business_plan and context including AI profile/business metrics and requested sections.
+- Show loading, error, success, what-you-will-get state.
+- Display structured plan cards and editable full draft.
+- Actions: regenerate, copy, share, save.
+- Save to drafts as type business_plan.
+- Resume from saved draft through aiWorkflowResume.
+
+Marketing AI workflow:
+- Guided sections:
+  1. Offer: offer name, offer details.
+  2. Audience and channel: audience, channel.
+  3. Goal and tone: goal, tone.
+- Channels: Social Media Post, Advertisement, Flyer Text, Promotional Message.
+- Tones: Friendly, Bold, Professional, Warm.
+- Required: offerName, offerDetails, audience, goal.
+- Generate type marketing with 3 variants: Primary, Short, Promotional.
+- Show variant cards with Use This Version, Copy, Share.
+- Editable selected version.
+- Actions: regenerate, copy, share, save.
+- Save as type marketing.
+- Resume saved draft.
+
+Email AI workflow:
+- Guided sections:
+  1. Recipient and goal: recipient, email goal.
+  2. Tone and background.
+  3. Desired outcome.
+- Email goals: Inquiry, Follow-up, Thank You, Complaint, Proposal, Introduction.
+- Tones: Professional, Warm, Friendly, Confident.
+- Required: recipient, background, desiredOutcome.
+- Generate type email with requested sections: Subject line, Email body, Suggested CTA.
+- Show structured email cards plus editable draft.
+- Actions: regenerate, copy, share, save.
+- Save as type email.
+- Resume saved draft.
+
+AI advisor chat:
+- Initial assistant message explains it can answer general business questions and use app context.
+- Load aggregate metrics on mount.
+- Context banner shows customers, invoices, revenue if available.
+- Task shortcuts:
+  - Review overdue invoices.
+  - Increase weekly sales.
+  - Re-engage customers.
+  - Get quick advice.
+- Send user message with full conversation history and business metrics to backend.
+- Assistant messages use structured advisor card.
+- User messages align right.
+- Input pinned above safe-area bottom with multiline text and send button.
+- Loading card while waiting.
+- Friendly fallback if backend unavailable.
+
+Saved drafts:
+- Load user drafts.
+- Group by Business Plans, Marketing Drafts, Email Drafts.
+- Each card shows title, type/date badge, preview, Continue, Copy, Share, Delete.
+- Continue saves resume payload and opens the correct workflow.
+- Delete requires confirmation.
+
+REUSABLE COMPONENTS TO CREATE
+
+Shared app components:
+- AppScreenHeader
+- AppFormField
+- AppStateCard
+- KeyboardAwareScrollView
+- PremiumButton
+- GlassCard
+- StatusBadge
+- QRPaymentModal
+- ProfileAvatar
+- AIFloatingButton
+
+Dashboard components:
+- DashboardHero
+- SectionHeader
+- PrimaryActionCard
+- InsightCard
+- RecentActivityCard
+- GettingStartedCard
+- AssistantSupportCard
+
+AI components:
+- AIWorkflowHero
+- AIWorkflowLauncherCard
+- AISectionCard
+- AIFieldGroup
+- AIHelperText
+- AIStateCard
+- AIResultSectionCard
+- AIEditableOutputCard
+- AIActionBar
+- AIVariantCard
+- AIContextBanner
+- AIAdvisorTaskCard
+- AIAdvisorMessageCard
+- AIDraftGroupSection
+- AIDraftMemoryCard
+
+FEATURE CONFIG
+
+Create a featuresConfig object:
+- payments: enabled true, provider paystack, publicKey from EXPO_PUBLIC_PAYSTACK_KEY.
+- tax: enabled true, standardRate 0.15, calculationMethod exclusive.
+- analytics: enabled only in production, trackingId from EXPO_PUBLIC_ANALYTICS_ID.
+- sync: offlineEnabled true, autoSyncInterval 5 minutes.
+- notifications: enabled true, pushTokensEnabled true.
+
+Payments service may remain a stub:
+- initializePayment({ amount, email, reference, callbackUrl? }) returns mock success and authorizationUrl.
+- verifyTransaction(reference) returns mock success.
+
+ACCEPTANCE CRITERIA
+
+The project is complete only when:
+- The app runs with Expo Router and TypeScript strict mode.
+- Firebase auth works for sign up, login, sign out, reset password.
+- Onboarding correctly saves profile/goals and routes users.
+- Dashboard adapts based on existing local business data.
+- Customers can be created, searched, edited, and deleted.
+- Invoices can be created with due dates, optional Ghana taxes, status changes, sharing, QR demo, and deletion.
+- Reports and tax report compute from saved invoice/customer data.
+- Notifications generate due-soon and overdue invoice reminders.
+- Profile editing supports avatar, business details, GPS, TIN, registration number, and dark mode.
+- Backup/sync creates local snapshots and shareable backup/summary.
+- AI tools call the backend with Firebase bearer tokens.
+- AI outputs are parsed into structured cards and editable drafts.
+- Drafts can be saved, grouped, copied, shared, deleted, and resumed.
+- FastAPI backend validates Firebase ID tokens and exposes /, /health, /ai/generate, /ai/chat.
+- No secret values are committed.
+- UI includes loading, empty, success, warning, and error states.
+- All main touch targets are at least 44pt.
+- Light and dark modes are readable.
+- The app is useful for a Ghanaian SME owner without technical knowledge.
+
+DELIVERABLE FORMAT
+
+Return the full project implementation with file paths, complete code, and any setup steps. Keep the existing folder shape:
+- app/ for Expo screens, components, hooks, contexts, services, types, config, lib, assets.
+- backend/ for FastAPI app, routers, firebase auth, requirements, deployment notes.
+
+Do not omit stubs that are part of the product story, such as PaymentService, SyncService, feature flags, analytics storage, backup export, and Railway deployment notes.
