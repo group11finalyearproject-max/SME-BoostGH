@@ -102,9 +102,8 @@ export default function BackupSyncScreen() {
                                 setErrorMessage(error?.message ?? 'Could not prepare a local sync snapshot.');
                             }
                         }}
-                        className={`min-h-[56px] flex-row items-center justify-center rounded-3xl bg-primary-600 px-4 py-4 ${
-                            isSyncing ? 'opacity-70' : ''
-                        }`}
+                        className={`min-h-[56px] flex-row items-center justify-center rounded-3xl bg-primary-600 px-4 py-4 ${isSyncing ? 'opacity-70' : ''
+                            }`}
                     >
                         <RefreshCw size={18} color="#FFFFFF" />
                         <Text className="ml-2 text-base font-bold text-white">
@@ -130,9 +129,8 @@ export default function BackupSyncScreen() {
                                 setLoadingBackup(false);
                             }
                         }}
-                        className={`min-h-[56px] flex-row items-center justify-center rounded-3xl border border-gray-200 bg-white px-4 py-4 dark:border-gray-600 dark:bg-gray-800 ${
-                            loadingBackup ? 'opacity-70' : ''
-                        }`}
+                        className={`min-h-[56px] flex-row items-center justify-center rounded-3xl border border-gray-200 bg-white px-4 py-4 dark:border-gray-600 dark:bg-gray-800 ${loadingBackup ? 'opacity-70' : ''
+                            }`}
                     >
                         <FolderArchive size={18} color="#2E7D32" />
                         <Text className="ml-2 text-base font-bold text-primary-700 dark:text-primary-300">
